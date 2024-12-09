@@ -1,47 +1,54 @@
-from PIL import Image #PIL is python imaging library
-def converter(image,type,saveas,scale):
-   scale= int(scale)
-   img=Image.open(image)
-   w,h=img.size
+from PIL import Image
 
-   img.resize((w//scale,h//scale)).save("resized.%s"%type)
 
-   grid=[]
-   for i in range(h):
-      grid.append(["X"]*w)
-  	  
-   pix=img.load()
-   for y in range(h):
-       for x in range(w):
-           if sum(pix[x,y])==0:
-               grid[y][x]="#"
-           elif sum(pix[x,y]) in range(1,100):
-               grid[y][x]="X"
-           elif sum(pix[x,y]) in range(100,200):
-                grid[y][x] = "%"
-           elif sum(pix[x,y]) in range(200,300):
-                grid[y][x] = "&"
-           elif sum(pix[x,y]) in range(300,400):
-                grid[y][x] = "*"
-           elif sum(pix[x,y]) in range(400,500):
-                grid[y][x] = "+"
-           elif sum(pix[x,y]) in range(500,600):
-                grid[y][x] = "/"
-           elif sum(pix[x,y]) in range(600,700):
-                grid[y][x] = "("
-           elif sum(pix[x,y]) in range(700,750):
-                grid[y][x] = "'"
-           else:
-                grid[y][x] = " "    
-                
-                   
-                   
- 
- 
-   art = open(saveas, "w")
-   for row in grid:
-       art.write("".join(row)+"\n")
+# map pixel sum range to char and return
+def getchar(pixel_sum):
+    ranges = [
+        (0, 0, "#"),
+        (1, 100, "X"),
+        (100, 200, "%"),
+        (200, 300, "&"),
+        (300, 400, "*"),
+        (400, 500, "+"),
+        (500, 600, "/"),
+        (600, 700, "("),
+        (700, 750, "'"),
+        (750, float("inf"), " "),
+    ]
+    for start, end, char in ranges:
+        if start <= pixel_sum < end:
+            return char
 
-   art.close()
-if __name__ == '__main__':
-    converter(" swathyuncanny.jpg", "jpg", "cityboy.txt", "3")
+    return " "
+
+
+def converter(image, scale=4, save=False):
+    img = Image.open(image)
+    w, h = img.size
+    w //= scale
+    h //= scale
+
+    pix = img.resize((w, h))
+
+    grid = []
+    for i in range(h):
+        grid.append(["X"] * w)
+
+    pix = pix.load()
+    for y in range(h):
+        for x in range(w):
+            pixsum = sum(pix[x, y])
+            grid[y][x] = getchar(pixsum)
+
+    if save:
+        art = open("output/output.txt", "w")
+        for row in grid:
+            art.write("".join(row) + "\n")
+        art.close()
+    else:
+        for row in grid:
+            print("".join(row))
+
+
+if __name__ == "__main__":
+    converter("test-images/fahimvillageboi.jpg", save=True)
